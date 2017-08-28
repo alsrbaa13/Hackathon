@@ -22,9 +22,9 @@ public class PositionManager implements SensorEventListener{
     float[] accelerationY = new float[2];    //y축 이전 및 현재 가속도 데이터
     float[] velocityY = new float[2];    //y축 이전 및 현재 속도 데이터
     float[] positionY = new float[2];    //y축 이동 거리
-    float lastTime = 0, currentTime = 0;
+    float currentTime = 0;
     float deltaT = 0;
-
+    int countMoveEnded = 0;    //움직임이 없는 경우를 카운트하는 변수
 
     public PositionManager(Context context) {
         this.context = context;
@@ -45,24 +45,25 @@ public class PositionManager implements SensorEventListener{
                 //t : 센서가 가속도의 63%를 인지하기 위해 걸리는 시간
                 //dt : 이벤트 전송율 혹 이벤트 전송속도
                 //alpha = t / (t + dt)
-                //final float alpha = (float) 0.8;
+                final float alpha = (float) 0.8;
 
                 if (currentTime == 0)
-                    currentTime = System.currentTimeMillis();
+                    currentTime = System.nanoTime();
                 else {
-                    lastTime = currentTime;
-                    currentTime = System.currentTimeMillis();
+                    float lastTime = currentTime;
+                    currentTime = System.nanoTime();
                     //Log.d("지난 시간", Float.toString(lastTime));
                     //Log.d("지금 시간", Float.toString(currentTime));
                     deltaT = ((currentTime - lastTime) / 1000);   //밀리초를 초로 변환
                     Log.d("deltaT", Float.toString(deltaT));
 
                     //low-pass filter
-                    //gravityData[0] = alpha * gravityData[0] + (1 - alpha) * event.values[0];    //x축의 중력 가속도
+                    gravityData[0] = alpha * gravityData[0] + (1 - alpha) * event.values[0];    //x축의 중력 가속도
 
                     //측정된 데이터에서 가속도만을 알아내기 위해 중력 가속도 데이터 제거
-                    //accelerationX[1] = event.values[0] - gravityData[0];
+                    accelerationX[1] = event.values[0] - gravityData[0];
 
+                    FilteringWindow();
                     //가속도 적분 -> 속도, 속도 적분 -> 거리
                     velocityX[1] = CalcIntegral(velocityX[0], accelerationX[0], accelerationX[1], deltaT);
                     positionX[1] = CalcIntegral(positionX[0], velocityX[0], velocityX[1], deltaT);
@@ -84,16 +85,35 @@ public class PositionManager implements SensorEventListener{
                     ((MainActivity) context).txtVelo.setText(veloStr);
                     ((MainActivity) context).txtDis.setText(posStr);
 
-
+                    MovementEndCheck();
                 }
+        }
+    }
+
+    //움직임이 없을 때 가속도 값 노이즈 발생 시 제거하는 메소드
+    void FilteringWindow() {
+        final float window = 0.1f;    //노이즈인지 판단하는 기준점
+        if((accelerationX[1] >= -window) && (accelerationX[1] <= window))
+            accelerationX[1] = 0;
+    }
+
+    //움직임이 없을 때 속도를 강제로 0으로 세팅하는 메소드
+    void MovementEndCheck() {
+        if(accelerationX[1] == 0)
+            countMoveEnded++;
+        else
+            countMoveEnded = 0;
+        if(countMoveEnded >= 5)
+        {
+            velocityX[1] = 0;
+            velocityX[0] = 0;
         }
     }
     //적분 수행 메소드
     //baseData : 이전까지의 속도/거리, prevData : 이전 가속도/속도, curData : 현재 가속도/속도, time : 시간 변화량
     public float CalcIntegral(float baseData,float prevData, float curData, float time) {
         float integratedData = 0;
-        integratedData = baseData + (prevData + ((curData - prevData) / 2)) * time;
-
+        integratedData = baseData + (prevData + ((curData - prevData) / 2)) * (time / 1000);
         return integratedData;
     }
 
