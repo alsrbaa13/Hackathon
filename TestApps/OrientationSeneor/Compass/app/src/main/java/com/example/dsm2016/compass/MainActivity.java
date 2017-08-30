@@ -65,22 +65,22 @@ public class MainActivity extends Activity implements SensorEventListener
         if (mLastAccelerometerSet && mLastMagnetometerSet) {
             SensorManager.getRotationMatrix(mR, null, mLastAccelerometer, mLastMagnetometer);
             SensorManager.getOrientation(mR, mOrientation);
-            mOrientation1 = abs(mOrientation[0]);
+            mOrientation1 = mOrientation[0];
 
-            /*if(mOrientation1 > 0.8){
+            if(mOrientation1 > 0.3){
                 direction = 2;
             }
-            else if(mOrientation1 >= 0.5 && mOrientation1 <= 0.8) {
+            else if(mOrientation1 >= -0.3 && mOrientation1 <= 0.3) {
                 direction = 1;
             }
-            else if(mOrientation1 < 0.5){
+            else if(mOrientation1 < -0.3){
                 direction = 3;
             }
             else{
                 Log.e("error", String.format("error"));
-            }*/
+            }
             Log.i("OrientationTestActivity", String.format("Orientation: %f, %f, %d",
-                    mOrientation1, mOrientation[0], direction));
+                    mOrientation1, abs(mOrientation[0])*60, direction));
         }
     }
 }
