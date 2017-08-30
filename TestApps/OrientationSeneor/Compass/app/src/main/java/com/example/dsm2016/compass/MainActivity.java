@@ -22,7 +22,8 @@ public class MainActivity extends Activity implements SensorEventListener
     private boolean mLastMagnetometerSet = false;
 
     private float[] mR = new float[9];
-    private float[] mOrientation = new float[3];
+    // Rotation Matrix로 동쪽으로 향한 장치의 X축과 남쪽으로 향한 장치의 Y축의 값
+    private float[] mOrientation = new float[3]; // Matrix를 통해 azimuth, pitch, roll를 구한 값
     private float mOrientation1; // 1 = north, 2 = east, 3 = south, 4 = west
     private int direction;
 
@@ -33,11 +34,11 @@ public class MainActivity extends Activity implements SensorEventListener
         setContentView(R.layout.activity_main);
 
         mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); //가속도 센서
+        mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD); // 방향 센서
     }
 
-    protected void onResume() {
+    protected void onResume() { // registerListener on
         super.onResume();
         mLastAccelerometerSet = false;
         mLastMagnetometerSet = false;
@@ -54,7 +55,7 @@ public class MainActivity extends Activity implements SensorEventListener
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event) {
+    public void onSensorChanged(SensorEvent event) { // 센서값을 읽어오는 부분
         if (event.sensor == mAccelerometer) {
             System.arraycopy(event.values, 0, mLastAccelerometer, 0, event.values.length);
             mLastAccelerometerSet = true;
@@ -66,7 +67,7 @@ public class MainActivity extends Activity implements SensorEventListener
             SensorManager.getRotationMatrix(mR, null, mLastAccelerometer, mLastMagnetometer);
             SensorManager.getOrientation(mR, mOrientation);
             mOrientation1 = mOrientation[0];
-
+             // 방향 판별
             if(mOrientation1 > 0.3){
                 direction = 2;
             }
@@ -80,7 +81,7 @@ public class MainActivity extends Activity implements SensorEventListener
                 Log.e("error", String.format("error"));
             }
             Log.i("OrientationTestActivity", String.format("Orientation: %f, %f, %d",
-                    mOrientation1, abs(mOrientation[0])*60, direction));
+                    mOrientation1, abs(mOrientation[0])*60, direction)); // 센서값, 각도, 방향
         }
     }
 }
