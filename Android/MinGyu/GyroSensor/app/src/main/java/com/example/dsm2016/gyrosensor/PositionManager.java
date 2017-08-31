@@ -11,6 +11,7 @@ public class PositionManager implements SensorEventListener {
     private double pitch;
     private double roll;
     private double yaw;
+    private double YawAngle;
 
     //timestamp and dt
     private double timestamp;
@@ -43,14 +44,15 @@ public class PositionManager implements SensorEventListener {
                     pitch = pitch + gyroY*dt;
                     roll = roll + gyroX*dt;
                     yaw = yaw + gyroZ*dt;
+                    YawAngle = yaw*RAD2DGR;
 
-                    Log.e("LOG", "GYROSCOPE           [X]:" + String.format("%.4f", event.values[0])
-                            + "           [Y]:" + String.format("%.4f", event.values[1])
-                            + "           [Z]:" + String.format("%.4f", event.values[2])
-                            + "           [Pitch]: " + String.format("%.1f", pitch*RAD2DGR)
-                            + "           [Roll]: " + String.format("%.1f", roll*RAD2DGR)
-                            + "           [Yaw]: " + String.format("%.1f", yaw*RAD2DGR)
-                            + "           [dt]: " + String.format("%.4f", dt));
+
+                    Log.e("LOG", "GYROSCOPE "
+                            + "           [Yaw]: " + String.format("%.1f", YawAngle)
+                            + "           [Sin]: " + String.format("%.1f", Math.sin(YawAngle))
+                            + "           [Cos]: " + String.format("%.1f", Math.cos(YawAngle))
+                            + "           [Tan]: " + String.format("%.1f", Math.tan(YawAngle))
+                    );
 
                 }
             }
